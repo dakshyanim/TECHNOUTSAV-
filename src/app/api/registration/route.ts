@@ -5,6 +5,7 @@ import { validateRegistration } from '@/lib/registration';
 import { challengeReturnPath } from '@/lib/return-path';
 import { claimApiRequest } from '@/lib/api-limits';
 import { readRequestBody, RequestBodyError } from '@/lib/request-body';
+import { hasAllowedRequestOrigin } from '@/lib/request-origin';
 
 export const runtime = 'nodejs';
 
@@ -13,8 +14,7 @@ function response(message: string, status: number) {
 }
 
 export async function POST(request: NextRequest) {
-  const expectedOrigin = process.env.APP_ORIGIN || request.nextUrl.origin;
-  if (request.headers.get('origin') !== expectedOrigin) return response('Registration must be submitted from this application.', 403);
+  if (!hasAllowedRequestOrigin(request)) return response('Registration must be submitted from this application.', 403);
   if (!request.headers.get('content-type')?.startsWith('application/json')) return response('Expected JSON.', 415);
   try {
     if (!await claimApiRequest('registration', 'global')) return response('Too many registration requests. Try again in one minute.', 429);

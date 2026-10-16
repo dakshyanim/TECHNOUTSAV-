@@ -3,6 +3,7 @@ import { getParticipantSession } from '@/lib/session';
 import { ChallengeError, getChallenge, recordChallengeAnswer } from '@/lib/challenges';
 import { claimApiRequest } from '@/lib/api-limits';
 import { readRequestBody, RequestBodyError } from '@/lib/request-body';
+import { hasAllowedRequestOrigin } from '@/lib/request-origin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,7 @@ export async function GET(_request: NextRequest, context: Context) {
 }
 
 export async function POST(request: NextRequest, context: Context) {
-  if (request.headers.get('origin') !== (process.env.APP_ORIGIN || request.nextUrl.origin)) {
+  if (!hasAllowedRequestOrigin(request)) {
     return json({ message: 'Submit your answer from this application.' }, 403);
   }
   if (!request.headers.get('content-type')?.startsWith('application/json')) return json({ message: 'Expected JSON.' }, 415);

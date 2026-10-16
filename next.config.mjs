@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const config = {
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   async headers() {
     return [{ source: '/:path*', headers: [
       { key: 'X-Content-Type-Options', value: 'nosniff' },

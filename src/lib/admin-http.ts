@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/admin-auth';
 import { readRequestBody, RequestBodyError } from '@/lib/request-body';
+import { hasAllowedRequestOrigin } from '@/lib/request-origin';
 
 export class AdminHttpError extends Error {
   status: number;
@@ -11,7 +12,8 @@ export async function authorizeAdmin(request: NextRequest,mutation = true) {
   if (mutation) requireSameOrigin(request);
 }
 export function requireSameOrigin(request: NextRequest) {
-  if (request.headers.get('origin') !== (process.env.APP_ORIGIN || request.nextUrl.origin)) {
+  if (!hasAllowedRequestOrigin(request)) {
+    if (process.env.NODE_ENV === 'development') console.warn('Request origin rejected. Check APP_ORIGIN and the browser address.');
     throw new AdminHttpError(403,'Submit this request from the application.');
   }
 }

@@ -1,5 +1,6 @@
 node_modules/
 .next/
+.next-admin-local/
 out/
 .env*
 !.env.example
@@ -7,3 +8,4 @@ out/
 npm-debug.log*
 .DS_Store
 test-results/
+.admin-access.local.txt
