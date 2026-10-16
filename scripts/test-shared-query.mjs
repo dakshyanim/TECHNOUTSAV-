@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { sharePublicQuery } from '../src/lib/shared-query.ts';
+let calls=0;
+const read=sharePublicQuery(async()=>{calls++; return {score:calls};});
+const burst=await Promise.all(Array.from({length:100},()=>read()));
+assert.equal(calls,1); assert.ok(burst.every(row=>row.score===1));
+assert.equal((await read()).score,2,'Settled public results must not be cached.');
+let failed=0;
+const recover=sharePublicQuery(async()=>{if (++failed===1) throw new Error('Temporary outage'); return 'recovered';});
+const errors=await Promise.allSettled(Array.from({length:100},()=>recover()));
+assert.ok(errors.every(result=>result.status==='rejected')); assert.equal(failed,1);
+assert.equal(await recover(),'recovered','A failed query must not poison future reads.');
+console.log('PASS: 100 overlapping public reads share one query; settled results and failures do not persist.');

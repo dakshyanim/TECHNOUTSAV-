@@ -1,0 +1,39 @@
+{
+  "name": "techno-utsav-qr-challenge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test:database": "node scripts/test-database-local.mjs",
+    "prepare:database": "node scripts/prepare-database.mjs",
+    "test:database-setup": "node scripts/test-database-setup.mjs",
+    "test:admin": "node scripts/test-admin-security.mjs",
+    "setup:admin": "node scripts/setup-admin.mjs",
+    "test:qr": "node scripts/test-qr.mjs"
+  },
+  "overrides": {
+    "postcss": "^8.5.23"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "next": "^15.0.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,20 @@
+# Atomic answer scoring
+
+Apply `202610080005_atomic_scoring.sql` after the existing four migrations. On a fresh database apply all five migrations, then seed.sql. No new environment variables are needed.
+
+The existing authenticated POST `/api/challenges/[code]` resolves participant identity from the server-managed cookie. It verifies question existence/activity and attempt history before calling the server-only database RPC. The database checks activity again while holding a question lock, calculates correctness from its stored correct_answer, sets the authoritative award, and inserts the submission. The unique participant/question constraint rejects concurrent duplicates. Only after a successful insert does the score trigger increment the participant total with a row-locking UPDATE. These operations share one transaction, so any failure rolls everything back. Concurrent answers to different questions serialize increments and cannot lose points.
+
+Answers match after ignoring case and surrounding whitespace. Internal whitespace, punctuation and synonyms remain significant. Correct answers receive the current question points; incorrect answers receive zero and still consume the attempt. Editing a question later does not change historical results. Previously pending attempts remain pending with zero points; regrading them would require a separately authorized controlled migration.
+
+The API returns `{ result: { submissionId, challengeCode, status: 'graded', isCorrect, pointsAwarded, totalScore } }`. The frontend displays these server fields and disables the completed form based on the server response. It does not compare answers or calculate scores. Client-supplied participant IDs, correctness flags and points are ignored. Correct answers are never returned to the frontend. Prior attempts are determined by backend reads; unique database enforcement remains authoritative even when a UI is stale or bypassed.
+
+## Verification
+
+1. Run `supabase/tests/scoring.sql` in the Supabase SQL editor. It rolls back fixtures and checks correct/wrong answers, duplicates including retries after wrong answers, total score, invalid/inactive questions and forged grading fields.
+2. Run the other SQL checks in supabase/tests; database.sql and qr_challenges.sql now expect grading rather than pending results.
+3. Start the configured app against a TEST Supabase database and run `node --env-file=.env.local scripts/test-scoring.mjs --allow-test-writes`. This creates one TEST participant and five submissions, exercises registration/session authentication and API submission, races same-question requests (expect one 201/one 409), races distinct questions (expect both successful), and verifies stored totals and rows. Test fixtures intentionally remain because submissions are immutable.
+4. Run `npm run typecheck` and `npm run build`. In a browser, submit a correct and wrong answer on separate questions and confirm returned points and total appear. Reload/reopen the question and confirm it cannot be answered again. Confirm no correct_answer occurs in HTML or responses.
+
+Local verification: terminal access was restored outside the sandbox. File presence was confirmed, TypeScript passed, and the Next.js production build passed. `npm run test:database` applies all five migrations to an isolated embedded PostgreSQL engine, runs the seed twice, and passes all four SQL suites including correct/wrong answers, duplicates, score updates, invalid/inactive questions, forged scoring values, registration and relationships. PGlite is a development-only test dependency and does not replace Supabase in the application.
+
+Live Supabase/API/session verification and independent concurrent database sessions remain outstanding because `.env.local` is absent. The local PostgreSQL engine has one connection and is not evidence of separate-transaction concurrency behavior. Use the configured test project and the live script above for those checks. Historical notes in earlier stage documents about terminal failures or deferred grading are superseded by this scoring stage.
