@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/admin-auth';
 import { readRequestBody, RequestBodyError } from '@/lib/request-body';
 import { hasAllowedRequestOrigin } from '@/lib/request-origin';
+import { QuestionSchemaError } from '@/lib/question-schema';
 
 export class AdminHttpError extends Error {
   status: number;
@@ -27,6 +28,7 @@ export function adminJson(value: unknown,status=200) {
   return NextResponse.json(value,{status,headers:{'Cache-Control':'no-store'}});
 }
 export function adminError(error: unknown) {
+  if (error instanceof QuestionSchemaError) return adminJson({message:error.message},503);
   if (error instanceof RequestBodyError) return adminJson({message:error.message},error.status);
   if (error instanceof AdminHttpError) return adminJson({message:error.message},error.status);
   console.error('Admin request unavailable.');

@@ -15,7 +15,7 @@ assert.equal(health.error, null, 'Database connection/health RPC failed.');
 assert.equal(health.data, true);
 const ids = Array.from({ length: 10 }, (_, i) => `10000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`);
 const questions = await client.from('questions')
-  .select('id,question,category,difficulty,points,active,created_at').in('id', ids);
+  .select('id,question,choices,points,active,claimed_at,created_at').in('id', ids);
 assert.equal(questions.error, null, 'Question retrieval failed.');
 assert.equal(questions.data.length, 10, 'Expected all ten seed questions.');
 for (const table of ['participants', 'submissions']) {

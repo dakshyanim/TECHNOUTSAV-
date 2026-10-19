@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { ALREADY_ATTEMPTED } from '@/lib/challenge-messages';
 
-export default function ChallengeAnswerForm({ code, attempted }: { code: string; attempted: boolean }) {
+export default function ChallengeAnswerForm({ code, attempted, choices }: { code: string; attempted: boolean; choices: string[] }) {
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(attempted);
   const [result, setResult] = useState<{ status: string; isCorrect: boolean | null; pointsAwarded: number; totalScore: number } | null>(null);
@@ -20,6 +20,7 @@ export default function ChallengeAnswerForm({ code, attempted }: { code: string;
       });
       const data = await response.json();
       if (response.status === 409 && data.code === 'ALREADY_ATTEMPTED') { setDone(true); return; }
+      if (response.status === 410) { setDone(true); setError(data.message || 'This challenge has expired.'); return; }
       if (response.status === 401) {
         window.location.assign(`/?next=${encodeURIComponent(`/challenge/${code}`)}`); return;
       }
@@ -32,11 +33,10 @@ export default function ChallengeAnswerForm({ code, attempted }: { code: string;
     {result && (result.status === 'graded'
       ? <><h3>{result.isCorrect ? 'Correct answer!' : 'Incorrect answer'}</h3><p>Points awarded: {result.pointsAwarded}</p><p>Total score: {result.totalScore}</p></>
       : <p>Your answer was recorded. Grading is pending.</p>)}
-    <p>{ALREADY_ATTEMPTED}</p>
+    <p>{error || ALREADY_ATTEMPTED}</p>
   </div>;
   return <form onSubmit={submit} className="registration-form">
-    <label htmlFor="answer">Your answer</label>
-    <textarea id="answer" name="answer" required maxLength={1000} rows={4} disabled={pending} />
+    <fieldset disabled={pending} className="mcq-options"><legend>Select your answer</legend>{choices.map((choice,index)=><label className="mcq-option" key={index}><input type="radio" name="answer" value={choice} required/><span>{choice}</span></label>)}</fieldset>
     <small>You can submit only once. Check your answer before submitting.</small>
     {error && <p role="alert" className="form-error">{error}</p>}
     <button type="submit" disabled={pending}>{pending ? 'SUBMITTING…' : 'SUBMIT ANSWER'}</button>

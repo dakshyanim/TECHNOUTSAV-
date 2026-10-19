@@ -1,6 +1,8 @@
 node_modules/
 .next/
 .next-admin-local/
+.next-test-mcq/
+.next-build-check/
 out/
 .env*
 !.env.example

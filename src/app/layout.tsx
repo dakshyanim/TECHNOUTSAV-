@@ -9,6 +9,6 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return <html lang="en"><body>{children}<nav className="event-navigation qr-no-print" aria-label="Event navigation">
-    <Link href="/">Student entry</Link><Link href="/leaderboard">Leaderboard</Link><Link href="/admin">Admin panel</Link>
+    <Link href="/">Student entry</Link><Link href="/leaderboard">Leaderboard</Link>
   </nav></body></html>;
 }

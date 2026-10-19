@@ -1,3 +1,5 @@
+> Current update (19 October 2026): four-choice MCQs, in-page scanning and first-correct global QR expiry require migration 202610190010_mcq_first_correct.sql. See [MCQ_UPDATE.md](MCQ_UPDATE.md) for deployment order and existing-data handling. Earlier verification/rules below describe their original implementation stage.
+
 # Atomic answer scoring
 
 Apply `202610080005_atomic_scoring.sql` after the existing four migrations. On a fresh database apply all five migrations, then seed.sql. No new environment variables are needed.

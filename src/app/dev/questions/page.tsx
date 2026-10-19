@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export default async function DevelopmentQuestions() {
   if (process.env.NODE_ENV !== 'development') notFound();
   const { data, error } = await createDatabaseClient().from('questions')
-    .select('challenge_code,question,category,difficulty').eq('active', true).order('challenge_code');
+    .select('challenge_code,question').eq('active', true).order('challenge_code');
   if (error) throw new Error('Unable to retrieve development questions.');
   const origin = (process.env.APP_ORIGIN || 'http://localhost:3000').replace(/\/$/, '');
   return <main><p className="eyebrow">DEVELOPMENT</p><h1>Question QR URLs</h1>
@@ -15,7 +15,7 @@ export default async function DevelopmentQuestions() {
     {!data?.length && <p>No active questions. Apply the migrations and seed data.</p>}
     {data?.map(question => <section key={question.challenge_code}>
       <h2>{question.challenge_code}</h2><p>{question.question}</p>
-      <p>{question.category} · {question.difficulty}</p>
+      
       <a className="qr-url" href={`${origin}/challenge/${question.challenge_code}`}>{`${origin}/challenge/${question.challenge_code}`}</a>
       <p><Link href={`/challenge/${question.challenge_code}`}>Open challenge</Link></p>
     </section>)}

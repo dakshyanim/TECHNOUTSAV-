@@ -1,3 +1,5 @@
+> Current update (19 October 2026): four-choice MCQs, in-page scanning and first-correct global QR expiry require migration 202610190010_mcq_first_correct.sql. See [MCQ_UPDATE.md](MCQ_UPDATE.md) for deployment order and existing-data handling. Earlier verification/rules below describe their original implementation stage.
+
 # Techno Utsav QR Challenge
 
 Initial infrastructure only: no QR scanning, questions, scoring, or leaderboard.

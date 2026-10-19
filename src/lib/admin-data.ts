@@ -1,6 +1,7 @@
 import { requireAdminPage } from '@/lib/admin-auth';
 import { createDatabaseClient } from '@/lib/supabase/admin';
 import type { AdminQuestion } from '@/lib/admin-question';
+import { isMissingQuestionSchema, QuestionSchemaError } from '@/lib/question-schema';
 
 export interface AdminDashboard {
   participantCount:number; questionCount:number; submissionCount:number;
@@ -18,7 +19,14 @@ export async function getAdminDashboard(page: number) {
 export async function getAdminQuestion(id: string) {
   await requireAdminPage();
   const {data,error}=await createDatabaseClient().from('questions')
-    .select('id,challenge_code,question,category,difficulty,correct_answer,points,active').eq('id',id).maybeSingle();
+    .select('id,challenge_code,question,choices,correct_answer,points,active,claimed_at').eq('id',id).maybeSingle();
+  if (isMissingQuestionSchema(error)) throw new QuestionSchemaError();
   if (error) throw new Error('Unable to load question.');
   return data as AdminQuestion|null;
+}
+export async function requireAdminQuestionSchema() {
+  await requireAdminPage();
+  const {error}=await createDatabaseClient().from('questions').select('choices,claimed_at').limit(1);
+  if (isMissingQuestionSchema(error)) throw new QuestionSchemaError();
+  if (error) throw new Error('Unable to reach question database.');
 }

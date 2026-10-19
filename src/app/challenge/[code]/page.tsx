@@ -19,9 +19,9 @@ export default async function Challenge({ params }: { params: Promise<{ code: st
   }
   return <main className="registration-shell">
     <p className="eyebrow">TECHNO UTSAV · {code}</p><h1>QR Challenge</h1>
-    <p>{challenge.question.category} · {challenge.question.difficulty}</p>
+    <p>{challenge.question.points} points · First correct answer wins</p>
     <section><h2>{challenge.question.question}</h2>
-      <ChallengeAnswerForm key={code} code={code} attempted={challenge.alreadyAttempted} />
+      <ChallengeAnswerForm key={code} code={code} attempted={challenge.alreadyAttempted} choices={challenge.question.choices as string[]} />
     </section><Link href="/challenge">← Challenge home</Link>
   </main>;
 }

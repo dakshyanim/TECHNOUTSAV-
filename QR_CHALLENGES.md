@@ -1,3 +1,5 @@
+> Current update (19 October 2026): four-choice MCQs, in-page scanning and first-correct global QR expiry require migration 202610190010_mcq_first_correct.sql. See [MCQ_UPDATE.md](MCQ_UPDATE.md) for deployment order and existing-data handling. Earlier verification/rules below describe their original implementation stage.
+
 # QR challenge stage
 
 Apply all migrations in filename order, including `202610080004_qr_challenges.sql`, then run `seed.sql`. The seed assigns sample UUIDs readable codes Q001–Q010. Migration 004 also assigns these codes to sample questions seeded in an earlier step. The current seed requires all four migrations.

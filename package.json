@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0",
+    "@zxing/browser": "^0.2.1",
     "next": "^15.0.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",

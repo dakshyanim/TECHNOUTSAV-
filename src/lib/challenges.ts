@@ -13,14 +13,16 @@ export async function getChallenge(code: string, participantId: string) {
   if (!isChallengeCode(code)) throw new ChallengeError(404, 'NOT_FOUND', 'Challenge not found.');
   const client = createDatabaseClient();
   const { data: question, error } = await client.from('questions')
-    .select('id,challenge_code,question,category,difficulty,active')
+    .select('id,challenge_code,question,choices,points,active,claimed_at')
     .eq('challenge_code', code).maybeSingle();
   if (error) throw new ChallengeError(503, 'UNAVAILABLE', 'Challenge is temporarily unavailable.');
   if (!question) throw new ChallengeError(404, 'NOT_FOUND', 'Challenge not found.');
-  if (!question.active) throw new ChallengeError(410, 'INACTIVE', 'This challenge is not active.');
+  if (!question.active && !question.claimed_at) throw new ChallengeError(410, 'INACTIVE', 'This challenge is not active.');
   const { data: attempt, error: attemptError } = await client.from('submissions')
     .select('id,submitted_at').eq('participant_id', participantId).eq('question_id', question.id).maybeSingle();
   if (attemptError) throw new ChallengeError(503, 'UNAVAILABLE', 'Challenge is temporarily unavailable.');
+  if (question.claimed_at && !attempt) throw new ChallengeError(410, 'EXPIRED', 'This challenge has expired. Another participant answered correctly.');
+  if (!Array.isArray(question.choices) || question.choices.length!==4) throw new ChallengeError(410, 'INACTIVE', 'This question is not ready.');
   return { question, alreadyAttempted: Boolean(attempt) };
 }
 
@@ -32,7 +34,9 @@ export async function recordChallengeAnswer(code: string, participantId: string,
   }).single();
   if (error) {
     if (error.code === '23505') throw new ChallengeError(409, 'ALREADY_ATTEMPTED', ALREADY_ATTEMPTED);
-    if (error.code === '22023') throw new ChallengeError(410, 'INACTIVE', 'This challenge is not active.');
+    if (error.code === 'P0001') throw new ChallengeError(410, 'EXPIRED', 'This challenge has expired. Another participant answered correctly.');
+    if (error.code === '22023') throw new ChallengeError(400, 'INVALID_CHOICE', 'Select one of the four choices.');
+    if (error.code === '55000') throw new ChallengeError(410, 'INACTIVE', 'This challenge is not active.');
     if (error.code === '23503') throw new ChallengeError(404, 'NOT_FOUND', 'Challenge not found.');
     throw new ChallengeError(503, 'UNAVAILABLE', 'Unable to save your answer. Please try again.');
   }

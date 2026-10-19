@@ -1,3 +1,5 @@
+> Current update (19 October 2026): four-choice MCQs, in-page scanning and first-correct global QR expiry require migration 202610190010_mcq_first_correct.sql. See [MCQ_UPDATE.md](MCQ_UPDATE.md) for deployment order and existing-data handling. Earlier verification/rules below describe their original implementation stage.
+
 # Admin dashboard
 
 Apply all migrations in order, including `202610090008_api_limits.sql`. Configure the existing Supabase server-only service-role key. With Node 22.18+ or Node 24, run `npm run setup:admin`, enter a strong password (hidden input), and copy the generated ADMIN_PASSWORD_HASH and ADMIN_SESSION_SECRET into ignored .env.local. Restart the app. Do not prefix either variable with NEXT_PUBLIC_ or paste them into chat. No default admin password exists.
@@ -10,7 +12,7 @@ Origin validation is shared by admin, registration and answer APIs. Production r
 
 Login attempts are limited atomically in PostgreSQL to ten per forwarding-address fingerprint and fifty globally per fifteen-minute window, including successful attempts. The global cap prevents forged IP headers bypassing the limit; the host should supply trusted forwarding headers. Limit exhaustion can temporarily block organizer login. The limiter fails closed if the database is unavailable. Raw forwarding addresses are hashed, and stale limiter records are deleted.
 
-The dashboard shows participant/question/submission counts, question management, participants, paginated submissions (50 per page), and current leaderboard standings with a link to the public live display. Question creation includes text, category, difficulty, correct answer, integer points (0–10,000), and active status; a QR challenge code is generated automatically. Editing preserves IDs and QR codes. Activate/deactivate buttons set status explicitly. Existing attempts and awarded scores remain immutable.
+The dashboard shows participant/question/submission counts, question management, participants, paginated submissions (50 per page), and current leaderboard standings with a link to the public live display. Question creation includes text, four choices, the correct-choice selector and integer points (0–10,000); activation controls remain on the dashboard; a QR challenge code is generated automatically. Editing preserves IDs and QR codes. Activate/deactivate buttons set status explicitly. Existing attempts and awarded scores remain immutable.
 
 `/api/admin/export` downloads ranked participant results with name, roll number, score, attempts, correct-answer count and registration time. UTF-8 BOM, quoted fields and formula-prefix protection make the CSV suitable for spreadsheet tools. Export and API responses use no-store. Correct answers are only returned to protected question edit pages and are not included in exports or public leaderboard responses.
 
