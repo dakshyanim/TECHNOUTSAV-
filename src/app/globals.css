@@ -112,3 +112,11 @@ button { background: #75e4ca; color: #101524; border: 0; padding: 12px 20px; bor
   .leaderboard-table th:last-child { width: 20%; }
   .leaderboard-table th { font-size: .7rem; letter-spacing: .03em; }
 }
+
+.event-clock { display:flex; justify-content:center; align-items:center; gap:24px; padding:14px 20px; background:#192237; border-bottom:1px solid #61708e; flex-wrap:wrap; text-align:center; }
+.event-clock strong {font-size:1.7rem;font-variant-numeric:tabular-nums;letter-spacing:.06em;}
+.event-clock.is-running strong {color:#75e4ca;}
+.admin-event-control {border:1px solid #61708e;border-radius:8px;padding:20px;margin:24px 0;}
+.admin-event-control label {display:block;margin-bottom:8px;}
+.admin-event-control input {max-width:220px;padding:12px;background:#101524;color:#eef2ff;border:1px solid #61708e;border-radius:8px;font:inherit;}
+.event-waiting {padding:20px;border:1px solid #61708e;border-radius:8px;}

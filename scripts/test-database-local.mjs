@@ -16,7 +16,7 @@ try {
     $$;
   `);
   const migrations = (await readdir(new URL('../supabase/migrations/', import.meta.url)))
-    .filter(name => name.endsWith('.sql') && !name.includes('010_mcq')).sort();
+    .filter(name => name.endsWith('.sql') && !name.includes('010_mcq') && !name.includes('011_event')).sort();
   for (const name of migrations) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), 'utf8'));
     console.log(`PASS migration: ${name}`);
@@ -26,7 +26,7 @@ try {
   await db.exec(seed);
   const { rows } = await db.query('select count(*)::int as count from public.questions');
   assert.equal(rows[0].count, 10, 'Seed must be repeatable.');
-  for (const name of (await readdir(new URL('../supabase/tests/', import.meta.url))).filter(name => name.endsWith('.sql') && name!=='mcq.sql').sort()) {
+  for (const name of (await readdir(new URL('../supabase/tests/', import.meta.url))).filter(name => name.endsWith('.sql') && name!=='mcq.sql' && name!=='event_timer.sql').sort()) {
     await db.exec(await readFile(new URL(`../supabase/tests/${name}`, import.meta.url), 'utf8'));
     console.log(`PASS database suite: ${name}`);
   }
@@ -46,6 +46,9 @@ try {
   await db.exec(await readFile(new URL('../supabase/migrations/202610190010_mcq_first_correct.sql',import.meta.url),'utf8'));
   await db.exec(seed);
   await db.exec(await readFile(new URL('../supabase/tests/mcq.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610220011_event_timer.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/tests/event_timer.sql',import.meta.url),'utf8'));
+  console.log('PASS: event start/stop, countdown expiry, private controls and transactional admission.');
   console.log('PASS: legacy regression suites before migration 010; MCQ upgrade, preserved historical scores, global expiry and protected scoring after migration 010.');
   console.log('Separate-session concurrency and live API/session checks require scripts/test-scoring.mjs against a configured test Supabase project.');
 } catch (error) {

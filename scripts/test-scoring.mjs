@@ -10,6 +10,9 @@ assert.ok(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_R
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
+const event = await db.rpc('get_event_state');
+assert.equal(event.error,null,'Apply event timer migration first.');
+assert.equal(event.data.is_open,true,'Start the challenge from /admin in your TEST environment before this scoring test.');
 const codes = ['Q001','Q002','Q003','Q004','Q005','Q006'];
 const { data: rows, error } = await db.from('questions').select('id,challenge_code,correct_answer,choices,points,active').in('challenge_code', codes);
 assert.equal(error, null, 'Could not read test questions.');

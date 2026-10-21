@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { requireAdminPage } from '@/lib/admin-auth';
 import { notFound } from 'next/navigation';
 import { createDatabaseClient } from '@/lib/supabase/admin';
 
@@ -6,6 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function DevelopmentQuestions() {
   if (process.env.NODE_ENV !== 'development') notFound();
+  await requireAdminPage();
   const { data, error } = await createDatabaseClient().from('questions')
     .select('challenge_code,question').eq('active', true).order('challenge_code');
   if (error) throw new Error('Unable to retrieve development questions.');

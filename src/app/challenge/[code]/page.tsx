@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import EventGate from '@/components/event-gate';
 import { redirect } from 'next/navigation';
 import { getParticipantSession } from '@/lib/session';
 import { getChallenge, ChallengeError, isChallengeCode } from '@/lib/challenges';
@@ -15,13 +16,14 @@ export default async function Challenge({ params }: { params: Promise<{ code: st
   try { challenge = await getChallenge(code, participant.id); }
   catch (error) {
     if (!(error instanceof ChallengeError)) throw error;
+    if(error.code==='CHALLENGE_CLOSED')return <main className="registration-shell"><p className="eyebrow">TECHNO UTSAV · {code}</p><EventGate refreshOnOpen><p>Loading your challenge…</p></EventGate><Link href="/challenge">Challenge home</Link></main>;
     return <main className="registration-shell"><p className="eyebrow">TECHNO UTSAV</p><h1>Challenge unavailable</h1><p>{error.message}</p><Link href="/challenge">Go back</Link></main>;
   }
   return <main className="registration-shell">
     <p className="eyebrow">TECHNO UTSAV · {code}</p><h1>QR Challenge</h1>
-    <p>{challenge.question.points} points · First correct answer wins</p>
+    <EventGate><p>{challenge.question.points} points · First correct answer wins</p>
     <section><h2>{challenge.question.question}</h2>
       <ChallengeAnswerForm key={code} code={code} attempted={challenge.alreadyAttempted} choices={challenge.question.choices as string[]} />
-    </section><Link href="/challenge">← Challenge home</Link>
+    </section></EventGate><Link href="/challenge">← Challenge home</Link>
   </main>;
 }

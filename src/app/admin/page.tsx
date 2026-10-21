@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import AdminEventControl from '@/components/admin-event-control';
 import { requireAdminPage } from '@/lib/admin-auth';
 import { getAdminDashboard,type AdminDashboard } from '@/lib/admin-data';
 import AdminLogout from '@/components/admin-logout';
@@ -16,6 +17,7 @@ export default async function Admin({searchParams}: {searchParams:Promise<{page?
   const pages=Math.max(1,Math.ceil(data.submissionCount/50));
   return <main className="admin-shell">
     <header className="admin-header"><div><p className="eyebrow">TECHNO UTSAV</p><h1>Admin dashboard</h1></div><AdminLogout /></header>
+    <AdminEventControl/>
     {params.notice==='saved' && <p role="status">Question saved.</p>}
     <div className="admin-stats"><div><strong>{data.participantCount}</strong> Total participants</div><div><strong>{data.questionCount}</strong> Total questions</div><div><strong>{data.submissionCount}</strong> Total submissions</div></div>
     <nav className="admin-nav" aria-label="Admin sections"><a href="#questions">Questions</a><a href="#participants">Participants</a><a href="#submissions">Submissions</a><a href="#standings">Leaderboard</a><a href="/api/admin/export">Export results CSV</a></nav>

@@ -2,6 +2,7 @@ node_modules/
 .next/
 .next-admin-local/
 .next-test-mcq/
+.next-test-event/
 .next-build-check/
 out/
 .env*

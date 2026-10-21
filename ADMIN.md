@@ -1,3 +1,5 @@
+> Current update (22 October 2026): shared countdown and organizer start/stop controls require migration `202610220011_event_timer.sql`. Read [EVENT_TIMER.md](EVENT_TIMER.md) before deploying. The event starts closed.
+
 > Current update (19 October 2026): four-choice MCQs, in-page scanning and first-correct global QR expiry require migration 202610190010_mcq_first_correct.sql. See [MCQ_UPDATE.md](MCQ_UPDATE.md) for deployment order and existing-data handling. Earlier verification/rules below describe their original implementation stage.
 
 # Admin dashboard

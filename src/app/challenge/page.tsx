@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getParticipantSession } from '@/lib/session';
 import QrScanner from '@/components/qr-scanner';
+import EventGate from '@/components/event-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,6 @@ export default async function ChallengePage() {
     <p className="eyebrow">TECHNO UTSAV</p><h1>Welcome, {participant.name}</h1>
     <section><h2>Your challenge</h2><p>Roll number: {participant.roll_number}</p><p>Total score: {participant.total_score}</p>
       <p>Scan a question QR code at the venue to open its challenge. Each question can be attempted once.</p>
-    </section><QrScanner eventOrigin={process.env.APP_ORIGIN}/><Link href="/leaderboard">View live leaderboard →</Link>
+    </section><EventGate><QrScanner eventOrigin={process.env.APP_ORIGIN}/></EventGate><Link href="/leaderboard">View live leaderboard →</Link>
   </main>;
 }

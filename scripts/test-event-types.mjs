@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {parseEventState,eventRemaining,formatEventTime,validateEventAction} from '../src/lib/event-types.ts';
+const state={running:true,is_open:true,duration_seconds:60,started_at:'2026-10-22T10:00:00Z',ends_at:'2026-10-22T10:01:00Z',version:1,server_time:'2026-10-22T10:00:00Z'};
+assert.deepEqual(parseEventState(state),state);
+assert.equal(eventRemaining(state,Date.parse('2026-10-22T10:00:30Z')),30000);
+assert.equal(eventRemaining(state,Date.parse('2026-10-22T10:02:00Z')),0);
+assert.equal(eventRemaining({...state,running:false},Date.parse(state.server_time)),0);
+assert.equal(formatEventTime(3600000),'01:00:00');assert.equal(formatEventTime(-1),'00:00:00');assert.equal(formatEventTime(1),'00:00:01');
+for(const value of [null,{}, {...state,version:-1},{...state,ends_at:'bad'},{...state,duration_seconds:0}])assert.throws(()=>parseEventState(value));
+assert.deepEqual(validateEventAction({action:'start',durationSeconds:60,version:0}),{action:'start',seconds:60,version:0});
+assert.deepEqual(validateEventAction({action:'stop',version:1}),{action:'stop',seconds:null,version:1});
+for(const value of [{action:'start',durationSeconds:0,version:0},{action:'start',durationSeconds:86401,version:0},{action:'stop',version:-1},{action:'reset',version:0},{action:'stop'}])assert.equal(validateEventAction(value),null);
+console.log('PASS: countdown values, expiry clamp, safe status parsing, duration bounds and admin action validation.');

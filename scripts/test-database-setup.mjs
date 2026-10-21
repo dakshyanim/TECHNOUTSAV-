@@ -20,15 +20,15 @@ try {
   const { rows } = await db.query('select count(*)::int count from public.questions');
   assert.equal(rows[0].count, 10);
   const { rows: history } = await db.query('select count(*)::int count from supabase_migrations.schema_migrations');
-  assert.equal(history[0].count, 10);
-  for (const name of (await readdir(new URL('../supabase/tests/', import.meta.url))).filter(name=>name==='mcq.sql' || name==='security.sql' || name==='registration.sql').sort()) {
+  assert.equal(history[0].count, 11);
+  for (const name of (await readdir(new URL('../supabase/tests/', import.meta.url))).filter(name=>name==='mcq.sql' || name==='security.sql' || name==='registration.sql' || name==='event_timer.sql').sort()) {
     await db.exec(await readFile(new URL(`../supabase/tests/${name}`, import.meta.url), 'utf8'));
     console.log(`PASS combined-setup suite: ${name}`);
   }
   await assert.rejects(db.exec(sql), /Application tables already exist/);
   await db.exec('rollback');
   assert.equal((await db.query('select count(*)::int count from public.questions')).rows[0].count, 10);
-  console.log('PASS: fresh setup, ten migration records, ten seed questions, current MCQ/security/session SQL suites, and safe refusal to overwrite an existing app.');
+  console.log('PASS: fresh setup, eleven migration records, ten seed questions, current MCQ/security/session SQL suites, and safe refusal to overwrite an existing app.');
 } finally { await db.close(); }
 const rollback = await freshDatabase();
 try {

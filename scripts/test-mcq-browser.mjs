@@ -20,6 +20,7 @@ let browser, app, backend;
 let log = '';
 let lastMessage = 0;
 let leaderboardQueries = 0;
+let dropEventNotifications=false;
 const tables = {
   revoked_admin_sessions: ['token_hash'],
   participant_sessions: ['participant_id','token_hash','expires_at'],
@@ -28,10 +29,11 @@ const tables = {
   submissions: ['id','submitted_at','participant_id','question_id'],
 };
 async function deliverNotifications() {
-  const { rows } = await db.query('select id from realtime.test_broadcasts where id > $1 order by id',[lastMessage]);
+  const { rows } = await db.query('select id,topic from realtime.test_broadcasts where id > $1 order by id',[lastMessage]);
   for (const row of rows) {
     lastMessage = row.id;
     for (const socket of sockets) {
+      if(!socket.topic.endsWith(row.topic) || (dropEventNotifications && row.topic==='techno-utsav:event'))continue;
       try { socket.ws.send(JSON.stringify([socket.joinRef,null,socket.topic,'broadcast',{ event:'changed', payload:{} }])); }
       catch { sockets.delete(socket); }
     }
@@ -41,9 +43,9 @@ function send(res,status,data) { res.writeHead(status,{'Content-Type':'applicati
 try {
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
     create schema realtime;
-    create table realtime.test_broadcasts(id serial, payload jsonb);
+    create table realtime.test_broadcasts(id serial, payload jsonb, topic text);
     create function realtime.send(payload jsonb,event text,topic text,private boolean default true)
-    returns void language sql as $$ insert into realtime.test_broadcasts(payload) values(payload); $$;`);
+    returns void language sql as $$ insert into realtime.test_broadcasts(payload,topic) values(payload,topic); $$;`);
   for (const name of (await readdir(new URL('../supabase/migrations/',import.meta.url))).filter(n=>n.endsWith('.sql')).sort()) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${name}`,import.meta.url),'utf8'));
   }
@@ -59,6 +61,9 @@ try {
         if (fn==='get_leaderboard') leaderboardQueries++;
         const args = {
           get_leaderboard: [],
+          get_event_state: [],
+          get_live_question: [body.p_code],
+          admin_control_event: [body.p_action,body.p_seconds,body.p_expected_version],
           register_participant: [body.p_name,body.p_roll_number,body.p_token_hash],
           submit_answer: [body.p_participant_id,body.p_question_id,body.p_answer],
           admin_claim_login_attempt: [body.p_key],
@@ -71,8 +76,8 @@ try {
         const params = args.map((_,i)=>`$${i+1}`).join(',');
         const result = await db.query(`select * from public.${fn}(${params})`,args);
         await deliverNotifications();
-        const value = ['register_participant','admin_claim_login_attempt','admin_get_dashboard','claim_api_request'].includes(fn) ? result.rows[0][fn]
-          : req.headers.accept?.includes('object+json') ? result.rows[0] : result.rows;
+        const value = ['register_participant','admin_claim_login_attempt','admin_get_dashboard','claim_api_request','get_event_state','admin_control_event'].includes(fn) ? result.rows[0][fn]
+          : req.headers.accept?.includes('object+json') ? (result.rows[0] ?? null) : result.rows;
         return send(res,200,value);
       }
       if (!tables[route]) return send(res,404,{});
@@ -139,6 +144,7 @@ try {
     const page=await context.newPage(); page.setDefaultNavigationTimeout(90000); page.setDefaultTimeout(60000); return page;
   }
 
+  await db.query("select public.admin_control_event('start',3600,0)");
   const display=await window({width:1920,height:1080});
   const student=await window({width:390,height:844});
   const other=await window({width:390,height:844});

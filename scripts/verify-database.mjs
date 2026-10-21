@@ -26,7 +26,7 @@ console.log('PASS: live Supabase connection, three tables, and ten sample questi
 const publicKey=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 assert.ok(publicKey,'Set the publishable key to verify anonymous database isolation.');
 const publicClient=createClient(url,publicKey,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:(input,init)=>fetch(input,{...init,signal:AbortSignal.timeout(10000)})}});
-for (const table of ['participants','questions','submissions','participant_sessions','admin_login_attempts','api_request_limits','revoked_admin_sessions','leaderboard_notification_gate']) {
+for (const table of ['participants','questions','submissions','participant_sessions','admin_login_attempts','api_request_limits','revoked_admin_sessions','leaderboard_notification_gate','event_control']) {
   const result=await publicClient.from(table).select('*',{head:true,count:'exact'});
   assert.ok(result.error,`${table} unexpectedly readable with public credentials.`);
   console.log('Public access error details:', JSON.stringify(result.error, null, 2));
@@ -40,3 +40,10 @@ const revocations=await client.from('revoked_admin_sessions').select('token_hash
 assert.equal(revocations.error,null,'Apply the security migration before starting updated code.');
 console.log('PASS: public table isolation, safe leaderboard projection, denied admin RPC and security migration.');
 console.log('Run supabase/tests/database.sql for transactional constraint and scoring checks.');
+
+const event = await publicClient.rpc('get_event_state');
+assert.equal(event.error,null,'Apply migration 011 for event timing.');
+assert.deepEqual(Object.keys(event.data).sort(),['duration_seconds','ends_at','is_open','running','server_time','started_at','version']);
+const privateEvent = await client.from('event_control').select('*');
+assert.ok(privateEvent.error,'Event table must only be accessible through functions.');
+console.log('PASS: public timing projection and private event controls.');

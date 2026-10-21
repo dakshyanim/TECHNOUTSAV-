@@ -20,7 +20,7 @@ export default function ChallengeAnswerForm({ code, attempted, choices }: { code
       });
       const data = await response.json();
       if (response.status === 409 && data.code === 'ALREADY_ATTEMPTED') { setDone(true); return; }
-      if (response.status === 410) { setDone(true); setError(data.message || 'This challenge has expired.'); return; }
+      if (response.status === 410 || response.status === 423) { setDone(true); setError(data.message || 'This challenge has expired.'); return; }
       if (response.status === 401) {
         window.location.assign(`/?next=${encodeURIComponent(`/challenge/${code}`)}`); return;
       }

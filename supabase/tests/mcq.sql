@@ -1,4 +1,9 @@
 begin;
+do $start$ begin
+if to_regprocedure('public.admin_control_event(text,integer,bigint)') is not null then
+ perform public.admin_control_event('start',3600,(public.get_event_state()->>'version')::bigint);
+end if;
+end; $start$;
 do $$
 declare a uuid; b uuid; c uuid; q uuid; invalid uuid; r record;
 begin
